@@ -127,4 +127,109 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(style);
+    
+    // Testimonial Carousel Functionality
+    const initTestimonialCarousel = () => {
+        const carouselTrack = document.querySelector('.carousel-track');
+        const testimonials = document.querySelectorAll('.testimonial');
+        const dotsContainer = document.querySelector('.carousel-dots');
+        const dots = document.querySelectorAll('.dot');
+        const prevButton = document.querySelector('.carousel-prev');
+        const nextButton = document.querySelector('.carousel-next');
+        
+        if (!carouselTrack || testimonials.length === 0) return;
+        
+        let currentIndex = 0;
+        const totalSlides = testimonials.length;
+        
+        // Function to update carousel position
+        const updateCarousel = () => {
+            carouselTrack.style.transform = `translateX(-${currentIndex * 100}%)`;
+            
+            // Update active dot
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+        };
+        
+        // Event listeners for prev/next buttons
+        if (prevButton) {
+            prevButton.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                updateCarousel();
+            });
+        }
+        
+        if (nextButton) {
+            nextButton.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                updateCarousel();
+            });
+        }
+        
+        // Event listeners for dots
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentIndex = index;
+                updateCarousel();
+            });
+        });
+        
+        // Auto-advance carousel every 5 seconds
+        const autoAdvance = setInterval(() => {
+            currentIndex = (currentIndex + 1) % totalSlides;
+            updateCarousel();
+        }, 5000);
+        
+        // Pause auto-advance when user interacts with carousel
+        const carouselContainer = document.querySelector('.carousel-container');
+        if (carouselContainer) {
+            carouselContainer.addEventListener('mouseenter', () => {
+                clearInterval(autoAdvance);
+            });
+            
+            // Optional: restart auto-advance when mouse leaves
+            carouselContainer.addEventListener('mouseleave', () => {
+                clearInterval(autoAdvance); // Clear any existing interval
+                const newAutoAdvance = setInterval(() => {
+                    currentIndex = (currentIndex + 1) % totalSlides;
+                    updateCarousel();
+                }, 5000);
+            });
+        }
+        
+        // Initialize carousel
+        updateCarousel();
+        
+        // Add swipe functionality for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        carouselTrack.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+        
+        carouselTrack.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+        
+        const handleSwipe = () => {
+            const swipeThreshold = 50; // Minimum distance for swipe
+            const swipeDistance = touchEndX - touchStartX;
+            
+            if (swipeDistance > swipeThreshold) {
+                // Swiped right, go to previous slide
+                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+            } else if (swipeDistance < -swipeThreshold) {
+                // Swiped left, go to next slide
+                currentIndex = (currentIndex + 1) % totalSlides;
+            }
+            
+            updateCarousel();
+        };
+    };
+    
+    // Initialize testimonial carousel
+    initTestimonialCarousel();
 });
